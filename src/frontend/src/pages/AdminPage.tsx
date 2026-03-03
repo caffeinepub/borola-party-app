@@ -959,8 +959,9 @@ export default function AdminPage() {
     }
   };
 
-  // Show loading while actor is initializing or while verifying a stored token
-  if (actorLoading || session.isVerifying) {
+  // Only show the spinner if there's a stored token we need to verify
+  const storedToken = !!localStorage.getItem("borola_admin_token");
+  if (storedToken && (actorLoading || session.isVerifying)) {
     return (
       <div className="min-h-screen bg-muted/30 flex items-center justify-center">
         <div
