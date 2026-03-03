@@ -951,12 +951,11 @@ export default function AdminPage() {
       });
       if (token && token.length > 0) {
         session.login(token);
-        toast.success("Login successful.");
       } else {
-        toast.error("Invalid credentials. Please try again.");
+        // no-op: mutation error state will show the banner
       }
     } catch {
-      toast.error("Login failed. Please check your credentials.");
+      // error is captured in loginMutation.isError — banner below will show
     }
   };
 
@@ -1111,7 +1110,7 @@ export default function AdminPage() {
               data-ocid="admin.login.error_state"
               className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm"
             >
-              Invalid credentials. Please try again.
+              Incorrect Admin ID or Password. Please try again.
             </div>
           )}
 
@@ -1126,7 +1125,10 @@ export default function AdminPage() {
                 type="text"
                 placeholder="Enter Admin ID"
                 value={adminId}
-                onChange={(e) => setAdminId(e.target.value)}
+                onChange={(e) => {
+                  setAdminId(e.target.value);
+                  loginMutation.reset();
+                }}
                 required
                 autoComplete="username"
               />
@@ -1144,7 +1146,10 @@ export default function AdminPage() {
                 type="password"
                 placeholder="Enter password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  loginMutation.reset();
+                }}
                 required
                 autoComplete="current-password"
               />
