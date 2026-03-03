@@ -68,11 +68,21 @@ function useAdminSession() {
 
   const isQueryEnabled = !!actor && !isFetching && !!token;
 
+  const logout = () => {
+    localStorage.removeItem("borola_admin_token");
+    setToken("");
+  };
+
   const verifyQuery = useQuery<boolean>({
     queryKey: ["verifyAdmin", token],
     queryFn: async () => {
       if (!actor || !token) return false;
-      return actor.verifyAdmin(token);
+      const result = await actor.verifyAdmin(token);
+      // If the backend says the token is invalid, clear it immediately
+      if (!result) {
+        logout();
+      }
+      return result;
     },
     enabled: isQueryEnabled,
     retry: false,
@@ -81,11 +91,6 @@ function useAdminSession() {
   const login = (t: string) => {
     localStorage.setItem("borola_admin_token", t);
     setToken(t);
-  };
-
-  const logout = () => {
-    localStorage.removeItem("borola_admin_token");
-    setToken("");
   };
 
   // isVerifying is only true when the query is actively running (enabled + fetching)

@@ -1,14 +1,17 @@
 import Map "mo:core/Map";
-import Text "mo:core/Text";
+import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
+import Text "mo:core/Text";
 import Random "mo:core/Random";
 import Runtime "mo:core/Runtime";
+import Migration "migration";
+import Time "mo:core/Time";
 
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 
-
-
+// Specify the data migration function in the with-clause
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -41,29 +44,27 @@ actor {
     timestamp : Int;
   };
 
-  let mlAs = Map.empty<Principal, Mla>();
-  let candidates = Map.empty<Principal, Candidate>();
-  let supporters = Map.empty<Principal, Supporter>();
-  let adminSessions = Map.empty<Text, AdminSession>();
-
-  // Hardcoded admin credentials
-  let adminId = "BOROLA2026";
-  let adminPassword = "784509";
+  // Persisted state
+  stable var mlAs : Map.Map<Principal, Mla> = Map.empty<Principal, Mla>();
+  stable var candidates : Map.Map<Principal, Candidate> = Map.empty<Principal, Candidate>();
+  stable var supporters : Map.Map<Principal, Supporter> = Map.empty<Principal, Supporter>();
+  stable var adminSessions : Map.Map<Text, AdminSession> = Map.empty<Text, AdminSession>();
 
   public shared ({ caller }) func adminLogin(username : Text, password : Text) : async Text {
-    if (username != adminId or password != adminPassword) {
+    if (username != "BOROLA2026" or password != "784509") {
       Runtime.trap("Invalid credentials");
     };
 
     let random = Random.crypto();
     let token = await* random.nat64();
+    let tokenText = token.toText();
     let session : AdminSession = {
-      token = token.toText();
-      timestamp = 0;
+      token = tokenText;
+      timestamp = Time.now();
     };
 
-    adminSessions.add(token.toText(), session);
-    token.toText();
+    adminSessions.add(tokenText, session);
+    tokenText;
   };
 
   public query ({ caller }) func verifyAdmin(token : Text) : async Bool {
@@ -76,17 +77,23 @@ actor {
   };
 
   public shared ({ caller }) func addMla(token : Text, mla : Mla) : async () {
-    assert (adminSessions.containsKey(token));
+    if (not adminSessions.containsKey(token)) {
+      Runtime.trap("Invalid admin session");
+    };
     mlAs.add(mla.id, mla);
   };
 
   public shared ({ caller }) func updateMla(token : Text, mla : Mla) : async () {
-    assert (adminSessions.containsKey(token));
+    if (not adminSessions.containsKey(token)) {
+      Runtime.trap("Invalid admin session");
+    };
     mlAs.add(mla.id, mla);
   };
 
   public shared ({ caller }) func deleteMla(token : Text, id : Principal) : async () {
-    assert (adminSessions.containsKey(token));
+    if (not adminSessions.containsKey(token)) {
+      Runtime.trap("Invalid admin session");
+    };
     mlAs.remove(id);
   };
 
@@ -96,17 +103,23 @@ actor {
   };
 
   public shared ({ caller }) func addCandidate(token : Text, candidate : Candidate) : async () {
-    assert (adminSessions.containsKey(token));
+    if (not adminSessions.containsKey(token)) {
+      Runtime.trap("Invalid admin session");
+    };
     candidates.add(candidate.id, candidate);
   };
 
   public shared ({ caller }) func updateCandidate(token : Text, candidate : Candidate) : async () {
-    assert (adminSessions.containsKey(token));
+    if (not adminSessions.containsKey(token)) {
+      Runtime.trap("Invalid admin session");
+    };
     candidates.add(candidate.id, candidate);
   };
 
   public shared ({ caller }) func deleteCandidate(token : Text, id : Principal) : async () {
-    assert (adminSessions.containsKey(token));
+    if (not adminSessions.containsKey(token)) {
+      Runtime.trap("Invalid admin session");
+    };
     candidates.remove(id);
   };
 
@@ -120,12 +133,16 @@ actor {
   };
 
   public shared ({ caller }) func updateSupporter(token : Text, supporter : Supporter) : async () {
-    assert (adminSessions.containsKey(token));
+    if (not adminSessions.containsKey(token)) {
+      Runtime.trap("Invalid admin session");
+    };
     supporters.add(supporter.id, supporter);
   };
 
   public shared ({ caller }) func deleteSupporter(token : Text, id : Principal) : async () {
-    assert (adminSessions.containsKey(token));
+    if (not adminSessions.containsKey(token)) {
+      Runtime.trap("Invalid admin session");
+    };
     supporters.remove(id);
   };
 };
