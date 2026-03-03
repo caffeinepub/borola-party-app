@@ -6,7 +6,9 @@ import Runtime "mo:core/Runtime";
 
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -46,7 +48,7 @@ actor {
 
   // Hardcoded admin credentials
   let adminId = "BOROLA2026";
-  let adminPassword = "BOROLA@2026";
+  let adminPassword = "784509";
 
   public shared ({ caller }) func adminLogin(username : Text, password : Text) : async Text {
     if (username != adminId or password != adminPassword) {
