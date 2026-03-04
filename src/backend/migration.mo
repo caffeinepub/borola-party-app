@@ -1,7 +1,6 @@
 import Map "mo:core/Map";
 import Principal "mo:core/Principal";
 import Text "mo:core/Text";
-
 import Storage "blob-storage/Storage";
 
 module {
@@ -34,25 +33,21 @@ module {
     timestamp : Int;
   };
 
-  // Original actor state
-  type Actor_0_1_0 = {
-    adminId : Text;
-    adminPassword : Text;
+  type OldState = {
     mlAs : Map.Map<Principal, Mla>;
     candidates : Map.Map<Principal, Candidate>;
     supporters : Map.Map<Principal, Supporter>;
     adminSessions : Map.Map<Text, AdminSession>;
   };
 
-  // New actor state (admin credentials stored locally, not persistent)
-  type Actor_0_1_1 = {
+  type NewState = {
     mlAs : Map.Map<Principal, Mla>;
     candidates : Map.Map<Principal, Candidate>;
     supporters : Map.Map<Principal, Supporter>;
     adminSessions : Map.Map<Text, AdminSession>;
   };
 
-  public func run(old : Actor_0_1_0) : Actor_0_1_1 {
+  public func run(old : OldState) : NewState {
     old;
   };
 };

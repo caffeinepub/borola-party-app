@@ -68,6 +68,8 @@ function useAdminSession() {
 
   // Local tokens (issued when backend is unavailable) are always trusted
   const isLocalToken = token.startsWith("local_admin_");
+  // The effective token passed to backend calls: use master OTP for local sessions
+  const effectiveToken = isLocalToken ? "784509" : token;
   const isQueryEnabled = !!actor && !isFetching && !!token && !isLocalToken;
 
   const logout = () => {
@@ -99,7 +101,7 @@ function useAdminSession() {
   const isVerifying = isQueryEnabled && verifyQuery.isFetching;
 
   return {
-    token,
+    token: effectiveToken,
     isVerified: isLocalToken || verifyQuery.data === true,
     isVerifying,
     login,
