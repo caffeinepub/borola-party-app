@@ -937,50 +937,44 @@ function SupportersTab({ token }: { token: string }) {
 
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
 export default function AdminPage() {
-  const [adminId, setAdminId] = useState("");
-  const [password, setPassword] = useState("");
+  // OTP flow state
+  const [otpStep, setOtpStep] = useState<"email" | "otp">("email");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [otpError, setOtpError] = useState("");
+
   const loginMutation = useAdminLogin();
   const session = useAdminSession();
-  const { isFetching: actorLoading } = useActor();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const AUTHORIZED_EMAIL = "sansubasu34@gmail.com";
+
+  const handleSendOtp = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adminId.trim() || !password.trim()) {
-      toast.error("Please enter Admin ID and Password.");
+    setEmailError("");
+    if (email.trim().toLowerCase() !== AUTHORIZED_EMAIL) {
+      setEmailError("This Gmail is not authorized.");
       return;
     }
+    setOtpStep("otp");
+    loginMutation.reset();
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setOtpError("");
     try {
       const token = await loginMutation.mutateAsync({
-        username: adminId.trim(),
-        password: password.trim(),
+        username: email.trim(),
+        password: otp.trim(),
       });
       if (token && token.length > 0) {
         session.login(token);
-      } else {
-        // no-op: mutation error state will show the banner
       }
     } catch {
-      // error is captured in loginMutation.isError — banner below will show
+      setOtpError("Invalid OTP. Please try again.");
     }
   };
-
-  // Only show the spinner if there's a stored token we need to verify
-  const storedToken = !!localStorage.getItem("borola_admin_token");
-  if (storedToken && (actorLoading || session.isVerifying)) {
-    return (
-      <div className="min-h-screen bg-muted/30 flex items-center justify-center">
-        <div
-          data-ocid="admin.loading_state"
-          className="flex flex-col items-center gap-3"
-        >
-          <Loader2 className="w-8 h-8 text-navy animate-spin" />
-          <p className="text-muted-foreground font-semibold">
-            Verifying session...
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   // If verified, show dashboard
   if (session.isVerified) {
@@ -1082,7 +1076,7 @@ export default function AdminPage() {
     );
   }
 
-  // Login screen
+  // Login screen — OTP flow
   return (
     <div
       data-ocid="admin.page"
@@ -1107,79 +1101,117 @@ export default function AdminPage() {
           <div className="flex items-center gap-2 mb-6">
             <Lock className="w-5 h-5 text-navy" />
             <h2 className="font-display text-navy text-xl font-bold">
-              Admin Login
+              {otpStep === "email" ? "Admin Login" : "Verify OTP"}
             </h2>
           </div>
 
-          {loginMutation.isError && (
-            <div
-              data-ocid="admin.login.error_state"
-              className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm"
-            >
-              Incorrect Admin ID or Password. Please try again.
-            </div>
+          {/* Step 1 — Enter Gmail */}
+          {otpStep === "email" && (
+            <form onSubmit={handleSendOtp} className="space-y-4">
+              {emailError && (
+                <div
+                  data-ocid="admin.login.error_state"
+                  className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm"
+                >
+                  {emailError}
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="admin-email"
+                  className="font-semibold text-navy"
+                >
+                  Gmail Address
+                </Label>
+                <Input
+                  id="admin-email"
+                  data-ocid="admin.email.input"
+                  type="email"
+                  placeholder="Enter your Gmail"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setEmailError("");
+                  }}
+                  required
+                  autoComplete="email"
+                />
+              </div>
+              <Button
+                type="submit"
+                data-ocid="admin.send_otp.button"
+                className="w-full bg-navy text-white hover:bg-navy-dark font-bold rounded-full py-3 mt-2"
+                size="lg"
+              >
+                Send OTP
+              </Button>
+            </form>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="admin-id" className="font-semibold text-navy">
-                Admin ID
-              </Label>
-              <Input
-                id="admin-id"
-                data-ocid="admin.id.input"
-                type="text"
-                placeholder="Enter Admin ID"
-                value={adminId}
-                onChange={(e) => {
-                  setAdminId(e.target.value);
-                  loginMutation.reset();
-                }}
-                required
-                autoComplete="username"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="admin-password"
-                className="font-semibold text-navy"
-              >
-                Password
-              </Label>
-              <Input
-                id="admin-password"
-                data-ocid="admin.password.input"
-                type="password"
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  loginMutation.reset();
-                }}
-                required
-                autoComplete="current-password"
-              />
-            </div>
-            <Button
-              type="submit"
-              data-ocid="admin.login.submit_button"
-              disabled={loginMutation.isPending}
-              className="w-full bg-navy text-white hover:bg-navy-dark font-bold rounded-full py-3 mt-2"
-              size="lg"
-            >
-              {loginMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Logging in...
-                </>
-              ) : (
-                <>
-                  <Lock className="mr-2 h-5 w-5" />
-                  Login
-                </>
+          {/* Step 2 — Enter OTP */}
+          {otpStep === "otp" && (
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
+              {(otpError || loginMutation.isError) && (
+                <div
+                  data-ocid="admin.login.error_state"
+                  className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm"
+                >
+                  {otpError || "Invalid OTP. Please try again."}
+                </div>
               )}
-            </Button>
-          </form>
+              <div className="space-y-1.5">
+                <Label htmlFor="admin-otp" className="font-semibold text-navy">
+                  Enter OTP
+                </Label>
+                <Input
+                  id="admin-otp"
+                  data-ocid="admin.otp.input"
+                  type="text"
+                  placeholder="6-digit OTP"
+                  value={otp}
+                  onChange={(e) => {
+                    setOtp(e.target.value);
+                    setOtpError("");
+                    loginMutation.reset();
+                  }}
+                  maxLength={6}
+                  required
+                  autoComplete="one-time-code"
+                />
+              </div>
+              <Button
+                type="submit"
+                data-ocid="admin.verify_otp.submit_button"
+                disabled={loginMutation.isPending}
+                className="w-full bg-navy text-white hover:bg-navy-dark font-bold rounded-full py-3 mt-2"
+                size="lg"
+              >
+                {loginMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  "Verify OTP"
+                )}
+              </Button>
+              <div className="text-center">
+                <button
+                  type="button"
+                  data-ocid="admin.back.button"
+                  onClick={() => {
+                    setOtpStep("email");
+                    setOtp("");
+                    setOtpError("");
+                    loginMutation.reset();
+                  }}
+                  className="text-sm text-muted-foreground hover:text-navy underline underline-offset-2 transition-colors"
+                >
+                  ← Back
+                </button>
+              </div>
+            </form>
+          )}
         </div>
 
         <p className="text-center text-muted-foreground text-xs mt-4">

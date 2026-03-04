@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Link, Outlet, useRouter } from "@tanstack/react-router";
-import { Menu, Star, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
+
+const BOROLA_LOGO =
+  "/assets/uploads/ChatGPT_Image_Mar_1__2026__01_07_54_PM-removebg-preview-2.png";
 
 const navLinks = [
   { to: "/", label: "Home", ocid: "nav.home.link" },
@@ -38,9 +41,11 @@ export default function Layout() {
               className="flex items-center gap-2 group"
               data-ocid="nav.home.link"
             >
-              <div className="w-9 h-9 rounded-full bg-saffron flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-                <Star className="w-5 h-5 text-navy" fill="currentColor" />
-              </div>
+              <img
+                src={BOROLA_LOGO}
+                alt="Borola Party Logo"
+                className="h-10 w-auto object-contain group-hover:scale-105 transition-transform"
+              />
               <div className="flex flex-col leading-tight">
                 <span className="font-display text-white text-lg font-bold tracking-widest uppercase">
                   BOROLA
@@ -135,9 +140,11 @@ export default function Layout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-saffron flex items-center justify-center">
-                <Star className="w-4 h-4 text-navy" fill="currentColor" />
-              </div>
+              <img
+                src={BOROLA_LOGO}
+                alt="Borola Party Logo"
+                className="h-8 w-auto object-contain"
+              />
               <span className="font-display text-white font-bold tracking-widest uppercase text-sm">
                 BOROLA PARTY
               </span>

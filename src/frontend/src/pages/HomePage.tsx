@@ -24,7 +24,7 @@ export default function HomePage() {
         {/* Background image */}
         <div className="absolute inset-0">
           <img
-            src="/assets/uploads/borola-party2-1.jpg"
+            src="/assets/uploads/borola-1.png"
             alt="Borola Party Banner"
             className="w-full h-full object-cover object-center"
           />

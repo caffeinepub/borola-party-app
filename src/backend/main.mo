@@ -4,15 +4,13 @@ import Principal "mo:core/Principal";
 import Text "mo:core/Text";
 import Random "mo:core/Random";
 import Runtime "mo:core/Runtime";
-import Migration "migration";
 import Time "mo:core/Time";
-
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 
+
 // Specify the data migration function in the with-clause
-(with migration = Migration.run)
-actor {
+ actor {
   include MixinStorage();
 
   type Mla = {
@@ -45,13 +43,13 @@ actor {
   };
 
   // Persisted state
-  stable var mlAs : Map.Map<Principal, Mla> = Map.empty<Principal, Mla>();
-  stable var candidates : Map.Map<Principal, Candidate> = Map.empty<Principal, Candidate>();
-  stable var supporters : Map.Map<Principal, Supporter> = Map.empty<Principal, Supporter>();
-  stable var adminSessions : Map.Map<Text, AdminSession> = Map.empty<Text, AdminSession>();
+  var mlAs = Map.empty<Principal, Mla>();
+  var candidates = Map.empty<Principal, Candidate>();
+  var supporters = Map.empty<Principal, Supporter>();
+  var adminSessions = Map.empty<Text, AdminSession>();
 
   public shared ({ caller }) func adminLogin(username : Text, password : Text) : async Text {
-    if (username != "BOROLA2026" or password != "784509") {
+    if (username != "sansubasu34@gmail.com" or password != "784509") {
       Runtime.trap("Invalid credentials");
     };
 
